@@ -33,7 +33,7 @@ try {
             }
 
             stage('static code analysis') {
-
+                echo "run code analysis"
             }
 
             if (env.BRANCH_NAME =~ /(?i)^pr-/ || env.BRANCH_NAME == "master") {
