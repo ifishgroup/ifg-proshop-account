@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -16,9 +17,19 @@ import (
 
 var conn *sql.DB
 var err error
-var host = "postgres"
+var host = getenv("POSTGRES_HOST", "localhost")
 var user = "postgres"
 var pass = "postgres"
+
+func getenv(key, fallback string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		fmt.Printf("Using db host: %v\n", fallback)
+		return fallback
+	}
+	fmt.Printf("Using db host: %v\n", value)
+	return value
+}
 
 func TestIntegrationHandleGet(t *testing.T) {
 	mux := http.NewServeMux()
