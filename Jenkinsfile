@@ -20,10 +20,15 @@ try {
             }
 
             stage('unit/integration test') {
-                sh "docker build -t $imageDb:$version db/"
-                sh "docker run --rm --name ${dbName} -p 5432:5432 -d $imageDb:$version"
-                sh "docker run --rm --link ${dbName} -v ${env.WORKSPACE}:/go/src/github.com/ifishgroup/ifg-proshop-account -w /go/src/github.com/ifishgroup/ifg-proshop-account golang:1.8.3 bash -c \"POSTGRES_HOST=${dbName} go get -d -v -t && go test --cover -v -tags=integration ./...\""
-                sh "docker stop ${dbName}"
+                try {
+                    sh "docker build -t $imageDb:$version db/"
+                    sh "docker run --rm --name ${dbName} -d $imageDb:$version"
+                    sh "docker run --rm --link ${dbName} -v ${env.WORKSPACE}:/go/src/github.com/ifishgroup/ifg-proshop-account -w /go/src/github.com/ifishgroup/ifg-proshop-account golang:1.8.3 bash -c \"POSTGRES_HOST=${dbName} go get -d -v -t && go test --cover -v -tags=integration ./...\""
+                } catch(e) {
+                    // do nothing
+                } finally {
+                    sh "docker stop ${dbName}"
+                }
             }
 
             if (env.BRANCH_NAME =~ /(?i)^pr-/ || env.BRANCH_NAME == "master") {
