@@ -16,6 +16,9 @@ import (
 
 var conn *sql.DB
 var err error
+var host = "postgres"
+var user = "postgres"
+var pass = "postgres"
 
 func TestIntegrationHandleGet(t *testing.T) {
 	mux := http.NewServeMux()
@@ -104,7 +107,7 @@ func postAccountData(t *testing.T, mux *http.ServeMux, writer *httptest.Response
 }
 
 func newDbConnection() *sql.DB {
-	conn, err = db.NewDbConnectionWithParams("localhost", "postgres", "postgres")
+	conn, err = db.NewDbConnectionWithParams(host, user, pass)
 	if err != nil {
 		panic(err)
 	}

@@ -4,14 +4,14 @@ services:
 
   account-service:
     build: .
-    image: "ifg-proshop-account"
+    image: "ifg-proshop-account-service"
     ports:
-      - 5000:8080
+      - 8080
     links:
       - postgres:db
 
   postgres:
-    build: db/.
+    build: db/
     image: "ifg-proshop-account-db"
     ports:
       - 5432:5432
