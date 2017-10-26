@@ -13,14 +13,27 @@ try {
                 "COMPOSE_FILE=common-services.yml"
         ]) {
 
+            def dbName = "postgres-${convertBranchName(env.BRANCH_NAME)}-${version}"
+
             stage('checkout') {
                 checkout scm
             }
 
             stage('unit/integration test') {
-                sh "docker build -t $imageDb:$version db/"
-                sh "docker run --rm --name postgres -p 5432:5432 -d $imageDb:$version"
-                sh "docker run --rm --link postgres -v ${env.WORKSPACE}:/go/src/github.com/ifishgroup/ifg-proshop-account -w /go/src/github.com/ifishgroup/ifg-proshop-account golang:1.8.3 bash -c \"go get -d -v -t && go test --cover -v -tags=integration ./...\""
+                try {
+                    sh "docker build -t $imageDb:$version db/"
+                    sh "docker run --rm --name ${dbName} -d $imageDb:$version"
+                    sh "docker run --rm --link ${dbName} -v ${env.WORKSPACE}:/go/src/github.com/ifishgroup/ifg-proshop-account -w /go/src/github.com/ifishgroup/ifg-proshop-account golang:1.8.3 bash -c \"go get -d -v -t && POSTGRES_HOST=${dbName} go test --cover -v -tags=integration ./...\""
+                } catch(e) {
+                    // do nothing
+                    throw e
+                } finally {
+                    sh "docker stop ${dbName}"
+                }
+            }
+
+            stage('static code analysis') {
+                echo "run code analysis"
             }
 
             if (env.BRANCH_NAME =~ /(?i)^pr-/ || env.BRANCH_NAME == "master") {
